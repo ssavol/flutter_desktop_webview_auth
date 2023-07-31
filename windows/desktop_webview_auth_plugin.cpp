@@ -13,6 +13,7 @@
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
 
+#include <filesystem>
 #include <map>
 #include <memory>
 #include <sstream>
@@ -299,7 +300,12 @@ namespace {
 
 		ShowWindow(hWndWebView, 1);
 
-		CreateCoreWebView2EnvironmentWithOptions(nullptr, nullptr, nullptr,
+		// by default, WebView2 would attempt to write under the .exe folder structure, in our case often Program Files, which is write protected
+		std::filesystem::path path = std::filesystem::temp_directory_path();
+		path.append("webViewTemp");
+		PCWSTR userDataFolder = path.c_str();
+
+		CreateCoreWebView2EnvironmentWithOptions(nullptr, userDataFolder, nullptr,
 			Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
 				[this](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
 					// Create a CoreWebView2Controller and get the associated CoreWebView2 whose parent is the main window hWnd
